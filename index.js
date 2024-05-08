@@ -183,21 +183,36 @@ bot.onText(/\/start(?: (.*))?/, async (msg) => {
           [
             { text: "Buy", callback_data: "buy" },
             { text: "Sell", callback_data: "sell" },
-            { text: "Positions", callback_data: "positions" },
+            
           ],
           [
-            { text: "CopyTrade", callback_data: "copytrade" },
-            { text: "LP Sniper 🔜", callback_data: "lp_sniper" },
+            { text: "Positions", callback_data: "positions" },
+            { text: "Limit Order", callback_data: "limit_orders" },
+            { text: "DCA Order", callback_data: "dca_order" },
             { text: "Check Wallet", callback_data: "check_wallet" },
           ],
           [
-            { text: "Referrals", callback_data: "referrals" },
-            { text: "Settings", callback_data: "setting" },
+            
+            { text: "CopyTrade", callback_data: "copytrade" },
+            { text: "LP Sniper 🔜", callback_data: "lp_sniper" },
+            
           ],
           [
-            { text: "Withdrawl", callback_data: "withdraw" },
-            { text: "Help", callback_data: "help" },
+            
+            { text: "New Pairs", callback_data: "new_pairs" },
+            { text: "Referrals", callback_data: "referrals" },
+            { text: "Settings", callback_data: "setting" },
+            
+            
           ],
+          [
+            { text: "Bridge", callback_data: "bridge" },
+            { text: "Withdrawl", callback_data: "withdraw" },
+          ],
+          [
+            { text: "Refresh", callback_data: "refresh" },
+            { text: "Help", callback_data: "help" },
+          ]
         ],
       },
     };
