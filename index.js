@@ -35,3 +35,32 @@ bot.onText(/\/start/, (msg) => {
     // Send the response
     bot.sendMessage(chatId, response,{parse_mode:"HTML",...keyboard_});
 });
+bot.on('callback_query',(msg)=>{
+    const chatId = msg.chat.id
+    const message = msg.text
+    const username = msg.from.username
+    switch (data) {
+        case 'sell':
+            bot.sendMessage(chatId, "You dont have any trade yet!");
+            break;
+        case 'buy':
+            bot.sendMessage(chatId, "Enter a token symbol or address to buy");
+            break;
+        case 'positions':
+            bot.sendMessage(chatId, "Enter the token address to check position for");
+            break;
+        case 'copy_trade':
+            bot.sendMessage(chatId, "Enter the token address to copytrade");
+            break;
+        case 'withdraw':
+            bot.sendMessage(chatId, "Enter the address where you want to withdraw");
+            break;
+        case 'refresh':
+            bot.sendMessage(chatId, "Refreshing");
+            break;
+        case 'autosell':
+            bot.sendMessage(chatId, "Autosell option:");
+            break;
+
+    }
+})
