@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Girlfriend Chatbot</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="chat-container">
+            <div class="girl-avatar" id="girl-avatar"></div>
+            <header>
+                <h1>Virtual Girlfriend Chat</h1>
+            </header>
+            <div class="chat-box" id="chat-box">
+                <div class="message bot-message">
+                    <span class="speech-bubble">Hello! I'm your virtual girlfriend. How can I assist you today?</span>
+                </div>
+            </div>
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
