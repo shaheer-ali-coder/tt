@@ -1,17 +1,24 @@
+
 function cleanText(input) {
     // Remove words within double quotes
     let cleanedText = input.replace(/"\w+"/g, '');
 
     // Remove standalone emoticons
-    // cleanedText = cleanedText.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+    cleanedText = cleanedText.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+
+    // Remove emojis
+    cleanedText = cleanedText.replace(/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2400}-\u{24FF}\u{25A0}-\u{25FF}\u{2800}-\u{28FF}]/gu, '');
 
     // Remove hashtags and the words following them
     cleanedText = cleanedText.replace(/#\S+/g, '');
 
     // Remove words between asterisks
     cleanedText = cleanedText.replace(/\*\w+\*/g, '');
+
+    // Remove lines containing specific keywords or phrases
     const lines = cleanedText.split('\n').filter(line => !/(AI|virtual|bot|robot|chatbot)/i.test(line));
     cleanedText = lines.join(' ');
+
     // Trim any extra spaces left after removal
     cleanedText = cleanedText.replace(/\s{2,}/g, ' ').trim();
 
