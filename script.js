@@ -1,3 +1,22 @@
+function cleanText(input) {
+    // Remove words within double quotes
+    let cleanedText = input.replace(/"\w+"/g, '');
+
+    // Remove standalone emoticons
+    // cleanedText = cleanedText.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+
+    // Remove hashtags and the words following them
+    cleanedText = cleanedText.replace(/#\S+/g, '');
+
+    // Remove words between asterisks
+    cleanedText = cleanedText.replace(/\*\w+\*/g, '');
+    const lines = cleanedText.split('\n').filter(line => !/(AI|virtual|bot|robot|chatbot)/i.test(line));
+    cleanedText = lines.join(' ');
+    // Trim any extra spaces left after removal
+    cleanedText = cleanedText.replace(/\s{2,}/g, ' ').trim();
+
+    return cleanedText;
+}
 async function sendMessage() {
     const inputField = document.getElementById('user-input');
     const message = inputField.value;
@@ -29,7 +48,10 @@ async function sendMessage() {
         console.log(data); // Log the response for debugging
 
         if (data.result) {
-            const botMessage = data.result;
+            const botMessage_ = data.result;
+            console.log("untrimmed : " + botMessage_)
+            const botMessage = cleanText(botMessage_)
+            console.log("trimmed : " + botMessage)
             displayMessageWithAnimation(botMessage, 'bot-message');
             animateAvatar(botMessage);
             speakMessage(botMessage);
