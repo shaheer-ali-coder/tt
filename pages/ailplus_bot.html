@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/fav.ico" type="image/x-icon">
+    <title>AMERICAN INCOME LIFE INSURANCE COMPANY</title>
+</head>
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    .logo{
+        margin: 24px auto;
+    }
+    header{
+        display: flex;
+        justify-content: center;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.6);
+        background-blend-mode: darken;
+    }
+    .dummy{
+        font-size: 25px;
+        font-family: Arial, Helvetica, sans-serif;
+        width: 70%;
+        margin:24px auto;
+        padding: 24px;
+        border: 2px solid black;
+        background-color: #f2f2f2; /* Light grey background color */
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 9px;
+    }
+    .input-container {
+        margin-top: 10px;
+    }
+    input{
+        border: 2px solid black;
+        border-radius: 4px;
+        font-size: 25px;
+        width: 70%;
+        margin: 10px 0px;
+        padding: 5px;
+    }
+    button{
+        border: 2px solid black;
+        border-radius: 4px;
+        font-size: 25px;
+        width: 20%;
+        margin: 10px 0px;
+        padding: 5px;
+    }
+    #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        background-size: cover;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+    #loading-overlay::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8); /* Adjust the background color and opacity */
+        filter: blur(4px); /* Adjust the blur amount */
+    }
+    #loading-message {
+        font-size: 20px;
+        color: #333; /* Adjust the text color */
+        z-index: 1; /* Ensure the text is on top of the blurred background */
+        display: none;
+    }
+</style>
+<body>
+    <header>
+        <img src="https://aileadtransfers.com/ADS/Images/logo2.png" alt="Logo" class="logo">
+    </header>
+    <div id="dummy" class="dummy"></div>
+    <div id="loading-overlay">
+        <div id="loading-message">Loading...</div>
+    </div>
+    <script>
+        const apiUrl = '/data';
+        let time = [];
+        let zoom_link = "https://gigack.easywebinar.live/registration?source=TGA&noti=dackerman&bkr=Ackerman";
+        
+        // Fetching event start times
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (Array.isArray(data)) {
+                    time = data.map(event => event.start);
+                    console.log('Start times:', time);
+                } else {
+                    console.error('Invalid data format. Expected an array:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error.message);
+            });
+
+        // Fetching user data
+        fetch('/user')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(userData => {
+        console.log(userData);
+        // Extracting details
+        name = userData.name || "";
+        email = userData.email || "";
+        phonenumber = userData.phonenumber || "";
+        city = userData.city || "";
+        zip = userData.zip || "";
+        country = userData.country || "";
+
+        // Now that we have user data, dynamically generate the initial HTML content
+        document.getElementById("dummy").innerHTML = `
+            <div class="input-container">
+                <p><b>Good Morning/Afternoon/Evening, Is this ${name}? </b></p>
+                <input type="text" id="first">
+                <button type="button" onclick="first()">Submit</button>
+            </div>
+        `;
+    })
+    .catch(error => {
+        console.error('Error fetching user data:', error.message);
+    });
+
+        function displayLoading() {
+            document.getElementById("loading-overlay").style.display = "flex";
+            document.getElementById("loading-message").style.display = "flex";
+        }
+
+        function hideLoading() {
+            document.getElementById("loading-overlay").style.display = "none";
+            document.getElementById("loading-message").style.display = "none";
+        }
+
+        function containsNegativeKeyword(value) {
+            const negativeKeywords = ["dont", "donot", "don't", "doesnot", "doesn't", "i will not provide it", "sorry"];
+            const lowercasedValue = value.toLowerCase();
+            return negativeKeywords.some(keyword => lowercasedValue.includes(keyword));
+        }
+
+
+        function first() {
+            let childrens = document.getElementById("first").value;
+            if (containsNegativeKeyword(childrens)) {
+                alert("Please provide valid information as it is required to give you the best service!");
+                return;
+            } else {
+                let dummy = document.getElementById("dummy").innerHTML;
+                displayLoading();
+                setTimeout(() => {
+                    document.getElementById("dummy").innerHTML = dummy + `
+                        <div class="input-container">
+                            <p><b>How are you doing today?</b></p>
+                            <input type="text" id="second">
+                            <button type="button" onclick="second()">Submit</button>
+                        </div>`;
+                    hideLoading();
+                }, 1000);
+            }
+        }
+
+        function second() {
+            let childrens = document.getElementById("second").value;
+            if (containsNegativeKeyword(childrens)) {
+                alert("Please provide valid information as it is required to give you the best service!");
+                return;
+            } else {
+                let dummy = document.getElementById("dummy").innerHTML;
+                displayLoading();
+                setTimeout(() => {
+                    document.getElementById("dummy").innerHTML = dummy + `
+                        <p>I'm glad you could take some time and I didn't want to take too long but I did want to reach out regarding the position from your resume. I wanted to give you some information about my company if you hadn't already done some looking around and I also wanted to see what you were looking for as well.</p>
+                        <div class="input-container">
+                            <p><b>Are you currently working?</b></p>
+                            <input type="text" id="working_or_not" placeholder="Enter 'yes' or 'no'">
+                            <button type="button" onclick="third()">Submit</button>
+                        </div>`;
+                    hideLoading();
+                }, 1000);
+            }
+        }
+
+        function third() {
+            let childrens = document.getElementById("working_or_not").value;
+            if (containsNegativeKeyword(childrens)) {
+                alert("Please provide valid information as it is required to give you the best service!");
+                return;
+            } else {
+                let dummy = document.getElementById("dummy").innerHTML;
+                displayLoading();
+                setTimeout(() => {
+                    if (childrens.toLowerCase() == "yes") {
+                        document.getElementById("dummy").innerHTML = dummy + `
+                            <div>
+                                <p><b>Ok, so what is driving you to look for another position?</b></p>
+                                <input type="text" id="reason">
+                                <button type="button" onclick="forth()">Submit</button>
+                            </div>`;
+                    } else if (childrens.toLowerCase() == "no") {
+                        document.getElementById("dummy").innerHTML = dummy + `
+                            <div>
+                                <p><b>Ok, so what are you looking for in a job?</b></p>
+                                <input type="text" id="reason">
+                                <button type="button" onclick="forth()">Submit</button>
+                            </div>`;
+                    }
+                    hideLoading();
+                }, 1000);
+            }
+        }
+
+        function forth() {
+            let childrens = document.getElementById("reason").value;
+            if (containsNegativeKeyword(childrens)) {
+                alert("Please provide valid information as it is required to give you the best service!");
+                return;
+            } else {
+                let dummy = document.getElementById("dummy").innerHTML;
+                displayLoading();
+                setTimeout(() => {
+                    document.getElementById("dummy").innerHTML = dummy + `
+                        <div class="input-container">
+                            <p>So I appreciate that! So I have your application in front of me. Just to double-check that I have it right...</p>
+                            <p><b>Your Name:</b> ${name}</p>
+                            <p><b>Email:</b> ${email}</p>
+                            <p><b>Phone Number:</b> ${phonenumber}</p>
+                            <p><b>City:</b> ${city}</p>
+                            <p><b>Zip:</b> ${zip}</p>
+                            <p><b>Country:</b> ${country}</p>
+                            <p>Does that sound right?</p>
+                            <input type="text" id="validation" placeholder="Enter 'yes' or 'no'">
+                            <button type="button" onclick="fifth()">Submit</button>
+                        </div>`;
+                    hideLoading();
+                }, 1000);
+            }
+        }
+
+        function fifth() {
+            let childrens = document.getElementById("validation").value;
+            if (containsNegativeKeyword(childrens)) {
+                alert("Please provide valid information as it is required to give you the best service!");
+                return;
+            } else {
+                let dummy = document.getElementById("dummy").innerHTML;
+                displayLoading();
+                setTimeout(() => {
+                    if (time.length > 0) {
+                        document.getElementById("dummy").innerHTML = dummy + `
+                            <div class="input-container">
+                                <p>So I want to get you on with one of my managers that can go through the position and answer any of the questions that you have, and to make sure it is a good fit for both of us. </p>
+                                <p>We have times available at: ${time.join(', ')}</p>
+                                <p><b>Which time works best for you?</b></p>
+                                <input type="text" id="time">
+                                <button type="button" onclick="sixth()">Submit</button>
+                            </div>`;
+                    } else {
+                        document.getElementById("dummy").innerHTML = dummy + `
+                            <p>Unfortunately, no times are available at the moment. Please check back later.</p>`;
+                    }
+                    hideLoading();
+                }, 1000);
+            }
+        }
+
+        function sixth() {
+    let childrens = document.getElementById("time").value;
+    if (containsNegativeKeyword(childrens)) {
+        alert("Please provide valid information as it is required to give you the best service!");
+        return;
+    } else {
+        let dummy = document.getElementById("dummy").innerHTML;
+        displayLoading();
+        setTimeout(() => {
+            // Prepare data for POST request
+            let data = {
+                platform: 'AilPlus', // Assuming platform is constant
+                email: email, // Assuming email is accessible in this scope
+                name: name, // Assuming name is accessible in this scope
+                link: zoom_link, // Assuming zoom_link is accessible in this scope
+                phonenumber: phonenumber, // Assuming phonenumber is accessible in this scope
+                // address: address, // Assuming address is accessible in this scope
+                time: childrens // Selected meeting time
+            };
+
+            fetch('/email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to send meeting time.');
+                }
+            })
+            .then(responseData => {
+                // Handle response if needed
+                console.log('Server response:', responseData);
+                // Update UI or perform further actions
+                document.getElementById("dummy").innerHTML = dummy + `
+                    <p>Ok, great! I will get you set up for that time.</p>
+                    <p>Please expect an email from us confirming your interview slot. In the meantime, you can prepare for your interview by checking out our website or the following Zoom link:</p>
+                    <a href="${zoom_link}">Zoom Interview Link</a>
+                    <p>Thank you for your time and I look forward to speaking with you again soon!</p>`;
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('Error sending meeting time:', error);
+                // Handle errors
+                hideLoading();
+            });
+        }, 1000);
+    }
+}
+
+
+    </script>
+</body>
+</html>
