@@ -1,345 +1,224 @@
-const TelegramBot = require('node-telegram-bot-api');
-const fs = require('fs');
-// Replace 'YOUR_TELEGRAM_BOT_TOKEN' with your actual bot token
-const token = '6322304990:AAGl871HQ6LWXqkIb4CiAayKiH_RDwNCuTg';
-const {
-    Keypair,
-    Connection,
-    Transaction,
-    SystemProgram,
-    PublicKey,
-  } = require("@solana/web3.js");
-const fix_message_private = `❔ Please, add @test_alpha_guard_bot to group with administrator rights and select the group for which the portal will be created.`;
-let state = 'idle'
-// Create a bot instance
-const bot = new TelegramBot(token, { polling: true });
-// Function to read data from the file
-function readDataFromFile() {
+const express = require('express');
+const bodyParser = require('body-parser');
+const nodemailer = require('nodemailer');
+const cors = require('cors');
+const path = require('path');
+const FormData = require('form-data')
+const axios = require('axios')
+const app = express();
+const fs = require('fs')
+const port = 80
+const accountSid = 'ACe11cad3ef07746029a0997736a5035b8';
+const authToken = 'cdfcdcbca624d98a44f4e494f4bee474';
+const from_phonenumber = "+18447556831"
+const client = require('twilio')(accountSid, authToken);
+// const from_phonenumber = ""
+async function sendSMS(to, message) {
     try {
-        const data = fs.readFileSync('data.json', 'utf8');
-        return JSON.parse(data);
-    } catch (err) {
-        console.error('Error reading data from file:', err);
-        return null;
+        const result = await client.messages.create({
+            body: message,
+            from: from_phonenumber,
+            to: to
+        });
+        console.log('Message sent successfully. SID:', result.sid);
+        return result.sid;
+    } catch (error) {
+        console.error('Error sending SMS:', error);
+        throw error;
     }
 }
-// Function to validate Solana public key format
-function isValidPublicKey(publicKey) {
+
+
+async function sendEmail(to, subject, text) {
+  // Create a transporter using SMTP transport
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587, 
+    secure: false,
+    auth: {
+      user: 'benefitactivation@gmail.com',
+      pass: 'mrtngbyipcwnozjy',
+    },
+  });
+
+  const mailOptions = {
+    from: 'benefitactivation@gmail.com', 
+    to,
+    subject,  
+  html: text ,// This is where you include your HTML content
+    
+  };
+
   try {
-      // Check if the provided public key is a valid PublicKey object
-      new PublicKey(publicKey);
-      return true;
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent:', info.response);
+    return { success: true, message: 'Email sent successfully' };
   } catch (error) {
-      // If an error occurs during parsing, the public key is invalid
-      return false;
+    console.error('Error sending email:', error.message);
+    return { success: false, message: 'Error sending email' };
   }
 }
-
-async function buyTokens(chatId, sellerPublicKey, buyerPrivateKeyBase64, amount) {
-  try {
-    // Establish connection to the Solana network
-    const connection = new Connection("https://api.devnet.solana.com");
-    // Assuming you're using Node.js
-    // Assuming you're using Node.js
-const privateKeyBuffer = Buffer.from("sVXqOyRxrDhPXLYXs5iTTyL43r2tHtZs45Jf90DaWSg1bjLN3zmG2KE9FoRHJc8xTVIYZLwdrwjTszWFAZvDPg==", 'base64');
-
-// Slice the buffer to 32 bytes
-const trimmedPrivateKeyBuffer = privateKeyBuffer.slice(0, 32);
-
-// Convert trimmed buffer to hexadecimal
-const hexEncodedPrivateKey = trimmedPrivateKeyBuffer.toString('hex');
-
-console.log("Private Key Hex:", hexEncodedPrivateKey);
-console.log("Private Key Length:", hexEncodedPrivateKey.length);
-
-
-    const buyerKeyPair = Keypair.fromSecretKey(privateKeyBuffer);
-    console.log('buyer key pair : ____________________________________',buyerKeyPair)
-    // Ensure that the seller public key is in the correct format
-    if (isValidPublicKey(sellerPublicKey==false)) {
-      bot.sendMessage(chatId, 'Invalid token address format. Please provide a valid Solana public key.');
+app.get('/',(req,res)=>{
+  let absolutePath = path.join(__dirname, '/pages/jobs.html');
+  res.sendFile(absolutePath);
+})
+app.use(cors());
+app.use(bodyParser.json());
+app.get('/jobs', (req, res) => {
+  let absolutePath = path.join(__dirname, '/pages/jobs.html');
+  res.sendFile(absolutePath);
+  })
+app.get('/thanks',(req,res)=>{
+  let absolutePath = path.join(__dirname,'pages/childsafekit-thanks.html')
+  res.sendFile(absolutePath)
+})
+app.get('/user', (req, res) => {
+  fs.readFile('data.json', 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
       return;
     }
 
-    // Get PublicKey for the seller
-    const sellerPublicKeyObj = new PublicKey(sellerPublicKey);
-    
-    // Fetch recent blockhash
-    const blockhash = await connection.getRecentBlockhash();
-
-    // Create a transaction to transfer tokens from seller to buyer
-    const transaction = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey: sellerPublicKeyObj,
-        toPubkey: buyerKeyPair.secretKey,
-        lamports: amount, // Amount of tokens to transfer
-      })
-    );
-
-    // Sign transaction with buyer's private key
-    transaction.recentBlockhash = blockhash.blockhash;
-    transaction.sign(buyerKeyPair);
-
-    // Send transaction
-    const signature = await connection.sendTransaction(transaction, [buyerKeyPair]);
-
-    console.log("Transaction sent:", signature);
-    bot.sendMessage(chatId, 'Successfully bought Token');
-  } catch (error) {
-    console.error("Error buying tokens:", error);
-    bot.sendMessage(chatId, 'The token entered is wrong or does not have the expected token');
-  }
-}
-
-
-
-  async function sellTokens(chatId, recipientAddress, privateKeyBase64, amount) {
     try {
-      // Connect to Solana cluster
-      const connection = new Connection("https://api.devnet.solana.com");
-      if (isValidPublicKey(recipientAddress) == false) {
-        bot.sendMessage(chatId, 'Invalid token address format. Please provide a valid Solana public key.');
-        return;
-    } 
-      // Decode the base64 private key to a buffer
-      const privateKeyBuffer = Buffer.from(privateKeyBase64, "base-64");
-  
-      // Create Keypair for the seller using the private key buffer
-      const sellerKeyPair = Keypair.fromSecretKey(privateKeyBuffer);
-  
-      // Get the token accounts owned by the seller
-      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-        sellerKeyPair.publicKey,
-        { programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') } // Ensure programId is a PublicKey object
-      );
-  
-      // Find the token account with the specified token mint
-      const tokenAccount = tokenAccounts.value.find(
-        account => account.account.data.parsed.info.mint === "So11111111111111111111111111111111111111112"
-      );
-  
-      // If the token account is found, proceed with the transfer
-      if (tokenAccount) {
-        // Get the token balance
-        const tokenBalance = tokenAccount.account.data.parsed.info.tokenAmount.uiAmount;
-  
-        // Ensure that the balance is sufficient
-        if (tokenBalance < amount) {
-          console.log("Insufficient balance to sell");
-          bot.message(chatId , `Insufficient balance to sell`)
-          return;
-        }
-  
-        // Create a new transaction to transfer the specified amount of tokens to the recipient
-        const transaction = new Transaction().add(
-          SystemProgram.transfer({
-            fromPubkey: sellerKeyPair.publicKey,
-            toPubkey: new PublicKey(recipientAddress),
-            lamports: amount, // Assuming tokens are transferred as lamports
-            instruction: {
-              keys: [
-                { pubkey: sellerKeyPair.publicKey, isSigner: true, isWritable: true },
-                {
-                  pubkey: new PublicKey(recipientAddress),
-                  isSigner: false,
-                  isWritable: true,
-                },
-                { pubkey:"So11111111111111111111111111111111111111112", isSigner: false, isWritable: false },
-              ],
-              programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-            },
-          })
-        );
-  
-        // Sign and send the transaction
-        const signature = await connection.sendTransaction(transaction, [sellerKeyPair]);
-  bot.sendMessage(chatId , 'successfully sold!')
-        console.log("Transaction sent:", signature);
+      const jsonData = JSON.parse(data);
+      const users = Object.values(jsonData);
+
+      if (users.length === 0) {
+        res.status(404).send('No users found');
       } else {
-        console.log("Token account not found");
+        const lastUser = users[users.length - 1];
+        res.json(lastUser);
       }
+    } catch (parseError) {
+      console.error(parseError);
+      res.status(500).send('Error parsing JSON');
+    }
+  });
+});
+  app.get('/data', async (req, res) => {
+    try {
+      // Replace 'YOUR_API_URL' and 'YOUR_AUTH_TOKEN' with the actual URL and token
+      const apiUrl = 'https://aileadtransfer.com/api/calendar';
+      const authToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiVGVzdCB1c2VyIiwibmFtZSI6IlRlc3QgdXNlciIsInBhc3N3b3JkIjpudWxsLCJBUElfVElNRSI6MTY5ODY2ODA4MH0.r2d9VgVbMe3-JaAfRlkXMN_llNsG3lSqxvSgFgeK53w';
+  
+      const response = await axios.get(apiUrl, {
+        headers: {
+          "authtoken" : `${authToken}`
+        }
+      });
+  
+      
+      const jsonData = response.data;
+  
+      // Assuming jsonData is an array of events
+      res.json(jsonData);
     } catch (error) {
-      console.error("Error selling tokens:", error);
+      console.error('Error fetching data:', error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-  }
-// Function to write data to the file
-function writeDataToFile(data) {
-    try {
-        fs.writeFileSync('./data.json', JSON.stringify(data, null, 4));
-        console.log('Data written to file successfully.');
-    } catch (err) {
-        console.error('Error writing data to file:', err);
-    }
-}
-// Listen for the /start command
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  const message = "⚙️ To start tracking new buys, use /add\n\n/setup - setup portal.\n/settings - open settings menu.\n/deletetoken - delete current token configuration. \n/buy - For buying token \n/sell - For selling all tokens";
-  bot.sendMessage(chatId, message);
-});
+  });
+  
+  app.post('/bot', async (req, res) => {
+      // Assuming the received data is a JSON object
+      const receivedData = req.body;
+    
+      // Read existing data from data.json (if any)
+      let existingData = [];
+      try {
+        const dataFile = fs.readFileSync('data.json', 'utf8');
+        existingData = JSON.parse(dataFile);
+      } catch (error) {
+        // If the file doesn't exist or is not valid JSON, ignore and start with an empty array
+        console.log(error)
+        // res.status(500).send(error)
+      }
+    
+      // Add the received data to the existing data array
+      existingData[receivedData['name']] = receivedData
+    
+      // Write the updated data array back to data.json
+      fs.writeFileSync('data.json', JSON.stringify(existingData, null, 2), 'utf8');
+    
+      res.status(200).send('Data received and stored successfully.');
+    });
+    app.get('/bot',(req,res)=>{
+      let absolutePath = path.join(__dirname,'/pages/jobs_bot.html')
+      res.sendFile(absolutePath)
+    })
 
-// Listen for the /add command (you can add functionality for other commands similarly)
-// Listen for the /add command (you can add functionality for other commands similarly)
-bot.onText(/\/add/, (msg) => {
-    const chatId = msg.chat.id;
-    if (msg.chat.type === 'private') {
-      bot.sendMessage(chatId, fix_message_private);
-      bot.sendMessage(chatId, `❗️ Command must be in chat by admin.`);
-    } else {
-      bot.sendMessage(chatId, `❔ Send me token address.(Private Key)`);
-      state = 'add'
-    }
-  });
-  
-  // Listen for the /setup command
-  bot.onText(/\/setup/, (msg) => {
-    const chatId = msg.chat.id;
-    if (msg.chat.type === 'private') {
-      bot.sendMessage(chatId, fix_message_private);
-      bot.sendMessage(chatId, `❗️ Command must be in chat by admin.`);
-    } else {
-    //   bot.sendMessage(chatId, ``);
-    bot.sendMessage(chatId, `❔ Send me token address.(Private Key)`);
-    state = 'add'
-    }
-  });
-  
-  // Listen for the /settings command
-  // Listen for the /settings command
-// Listen for the /settings command
-bot.onText(/\/settings/, (msg) => {
-  const chatId = msg.chat.id;
-  if (msg.chat.type === 'private') {
-      bot.sendMessage(chatId, fix_message_private);
-      bot.sendMessage(chatId, `❗️ Command must be in chat by admin.`);
-  } else {
-      // Read data from file
-      const data = readDataFromFile();
-      if (data) {
-          const username = msg.from.username;
-          let found = false;
+
+    app.post('/email', (req, res) => {
+      const requestData = req.body;
+      const platform = requestData['platform']
+      const email = requestData['email']
+      const name = requestData['name']
+      const zoom_link = requestData['link']
+      const phonenumber = requestData['phonenumber']
+      const address = requestData['address']
+      let agent_name = "Anthony"
+      let agent_phone_number = "4079212467"
+      const time = requestData['time']
+        let data2 = new FormData
+        data2.append('name',"jobs")
+        data2.append('source',"13")
+        data2.append('status',"8")
+        data2.append("title","jobs Meeting")
+        data2.append('assigned','35')
+        data2.append('client_id',"0")
+        // data2.append('email',email)
+        // data2.append('phonenumber',phonenumber)
+        // data2.append('address',address)
+        // data2.append("city",requestData['city'])
+        // data2.append("country",requestData['country'])
+        let config = {
+          method: 'post',
+          maxBodyLength: Infinity,
+          url: 'http://aileadtransfer.com/api/leads',
+          headers: {
+            'authtoken': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiVGVzdCB1c2VyIiwibmFtZSI6IlRlc3QgdXNlciIsInBhc3N3b3JkIjpudWxsLCJBUElfVElNRSI6MTY5ODY2ODA4MH0.r2d9VgVbMe3-JaAfRlkXMN_llNsG3lSqxvSgFgeK53w',
+            'Cookie': 'csrf_cookie_name=ed67552cee6b74b726acb03704571d95; sp_session=b08c5d39e6d27f448d6c182d472e7424946f9df8',
+            ...data2.getHeaders()
+          },
+          data: data2
+        };
+        
+        axios.request(config)
+          .then((response) => {
+            console.log(JSON.stringify(response.data));
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+        // addLeadToCRM(data2)
+        let emailText = `
+        <html>
+            <head>
+                <style>
+                    /* Add CSS styles here if needed */
+                </style>
+            </head>
+            <body>
+                <img src="https://aileadtransfers.com/ADS/Images/childsafetykit.jpg" alt="Logo">
+                <h1>This is to present to you the AIECS No Cost Child Id Kit</h1>
+                <p>I will be texting you until the meeting to be sure it goes off without a hitch. We all lead such busy lives that we try and assist people in completing the important appointment they have setup.</p>
+                <p>Just so you know Anthony is one of the Advisors who is high in demand because of her dedication to following through with her appointments.</p>
+                <p>The Zoom link - <a href="${zoom_link}">${zoom_link}</a></p>
+                <p>This is her cell number in case of emergency - 4079212467</p>
+                <p>Please text back a C to confirm your attendance at this appointment.</p>
+            </body>
+        </html>
+    `;
+        sendEmail(email, "Confirmation | Jobs Recuirement", emailText);
           
-          // Check if the username matches with any username in the data
-          // Check if the username matches with any username in the data
-Object.keys(data).forEach(key => {
-  console.log("Comparing usernames:", key, username); // Log the key (which is the username) being compared
-  if (key === username) { // Compare the key (username) directly with the provided username
-      found = true;
-      const mytoken = data[key].token;
-      // Send message with token address
-      bot.sendMessage(chatId, `
-ℹ️ D.BuyBot is one of the most innovative buy-bots, supporting @TrendingsCrypto.
-
-⤵️ Current token address:
-${mytoken}
-
-Backed by @DelugeCash
-      `);
-  }
-});
-
-          if (!found) {
-              bot.sendMessage(chatId, `First run the command /add`);
-          }
-      } else {
-          bot.sendMessage(chatId, `Failed to read data from file.`);
-      }
-  }
-});
-
-  
-  // Listen for the /deletetoken command
-  bot.onText(/\/deletetoken/, (msg) => {
-    const chatId = msg.chat.id;
-    if (msg.chat.type === 'private') {
-      bot.sendMessage(chatId, fix_message_private);
-      bot.sendMessage(chatId, `❗️ Command must be in chat by admin.`);
-    } else {
-      bot.sendMessage(chatId, `Are you sure you want to delete the token?(Yes/No)`);
-      state = 'sure'
-    }
-  });
-
-  bot.on('message', (msg) => {
-    const chatId = msg.chat.id;
-    // Check if the state is 'add'
-    // Check if the state is 'add'
-if (state === 'add') {
-  // Read data from file
-  let data = readDataFromFile();
-  if (data) {
-      // Check if the username exists in the data, if not, initialize it
-      if (!data[msg.from.username]) {
-          data[msg.from.username] = {};
-      }
-      // Update data object with token
-      data[msg.from.username].token = msg.text;
-      // Write data back to file
-      writeDataToFile(data);
-      bot.sendMessage(chatId , 'Token added successfully')
-      // Reset state back to 'idle'
-      state = 'idle';
-  } else {
-      bot.sendMessage(chatId, 'Failed to read data from file.');
-  }
-}
-
-    if(state == 'sure'){
-        if(msg.text == "Yes"){
-            let data = readDataFromFile();
-            if (data) {
-                // Check if the username exists in the data
-                if (data[msg.from.username]) {
-                    // Remove the object corresponding to the username
-                    delete data[msg.from.username];
-                    // Write data back to file
-                    writeDataToFile(data);
-                    bot.sendMessage(chatId, 'Token deleted successfully.');
-                } else {
-                    bot.sendMessage(chatId, 'First run the /add command');
-                }
-                // Reset state back to 'idle'
-                state = 'idle';
-            } else {
-                bot.sendMessage(chatId, 'Failed to read data from file.');
-            }
-        }
-        }
-    if(state == 'buy'){
-        const data = readDataFromFile();
-        if (data) {
-            const username = msg.from.username;
-            let mytoken = null;
-            // Check if the username matches with any username in the data
-            Object.keys(data).forEach(key => {
-                if (key === username) {
-                    mytoken = data[key].token;
-                }
-                
-            });
-            if(mytoken){
-              console.log('this is myToken :' , mytoken)
-              console.log('the token to buy',msg.text)
-                buyTokens(chatId, msg.text, mytoken , 20);
-            }
-        }
-    }
-    if(state == 'sell'){
-        const data = readDataFromFile();
-        if (data) {
-            const username = msg.from.username;
-            let mytoken = null;
-            // Check if the username matches with any username in the data
-            Object.keys(data).forEach(key => {
-                if (data[key].username === username) {
-                    mytoken = data[key].token;
-                }
-            });
-        if(mytoken){
-            sellTokens(chatId, msg.text, mytoken , 20);
-            }
-    }}
-    }
-);
+        sendSMS(phonenumber, emailText)
+.then(sid => console.log('Message SID:', sid))
+.catch(err => console.error('Failed to send message:', err));
+      res.json({ message: 'Endpoint 1 POST request received', data: requestData });
+    });
 
 
+    app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+      });
+      
